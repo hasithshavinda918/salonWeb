@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Salon Hashi | Premium Beauty Experience</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.151.3/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --primary: #FF69B4;
+      --primary-dark: #D84A94;
+      --secondary: #363062;
+      --accent: #F5B0CB;
+      --dark: #121212;
+      --light: #F9F9F9;
+    }
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      scroll-behavior: smooth;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Cormorant Garamond', serif;
+    }
+    
+    .hero-canvas, .service-canvas, .testimonial-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+    
+    .blend-overlay {
+      mix-blend-mode: overlay;
+    }
+    
+    .service-card:hover {
+      transform: translateY(-8px);
+    }
+    
+    .glass-effect {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    
+    .text-shadow {
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    .progress-bar {
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+      width: 0%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-200 overflow-x-hidden">
+  <!-- Scroll Progress Bar -->
+  <div class="progress-bar"></div>
+
+  <!-- Floating Appointment Button -->
+  <div class="fixed bottom-8 right-8 z-50">
+    <button id="appointmentBtn" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 transition duration-300 flex items-center">
+      <span class="mr-2">Book Now</span>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="fixed top-0 w-full z-50 transition-all duration-300" id="navbar">
+    <div class="container mx-auto px-6 py-4">
+      <div class="flex justify-between items-center">
+        <a href="#home" class="flex items-center space-x-2">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-purple-600 flex items-center justify-center text-white font-bold text-xl">H</div>
+          <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-600">Salon Hashi</span>
+        </a>
+        
+        <!-- Desktop Menu -->
+        <ul class="hidden md:flex space-x-8 text-gray-300 font-medium">
+          <li><a href="#home" class="hover:text-pink-400 transition-colors duration-300 nav-link">Home</a></li>
+          <li><a href="#about" class="hover:text-pink-400 transition-colors duration-300 nav-link">About</a></li>
+          <li><a href="#services" class="hover:text-pink-400 transition-colors duration-300 nav-link">Services</a></li>
+          <li><a href="#team" class="hover:text-pink-400 transition-colors duration-300 nav-link">Our Team</a></li>
+          <li><a href="#gallery" class="hover:text-pink-400 transition-colors duration-300 nav-link">Gallery</a></li>
+          <li><a href="#pricing" class="hover:text-pink-400 transition-colors duration-300 nav-link">Pricing</a></li>
+          <li><a href="#testimonials" class="hover:text-pink-400 transition-colors duration-300 nav-link">Testimonials</a></li>
+          <li><a href="#contact" class="hover:text-pink-400 transition-colors duration-300 nav-link">Contact</a></li>
+        </ul>
+        
+        <!-- Mobile Menu Button -->
+        <button id="menuBtn" class="md:hidden text-gray-300 focus:outline-none">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div id="mobileMenu" class="md:hidden bg-gray-900 glass-effect hidden absolute w-full py-4 px-6 mt-2">
+      <ul class="space-y-4 text-gray-300">
+        <li><a href="#home" class="block hover:text-pink-400 transition-colors duration-300 mobile-nav-link">Home</a></li>
+        <li><a href="#about" class="block hover:text-pink-400 transition-colors duration-300 mobile-nav-link">About</a></li>
+        <li><a href="#services" class="block hover:text-pink-400 transition-colors duration-300 mobile-nav-link">Services</a></li>
+        <li><a href="#team" class="block hover:text-pink-400 transition-colors duration-300 mobile-nav-link">Our Team</a></li>
+        <li><a href="#gallery" class="block hover:text-pink-400 transition-colors duration-300 mobile-nav-link">Gallery</a></li>
+        <li><a href="#pricing" class="block hover:text-pink-400 transition-colors duration-300 mobile-nav-link">Pricing</a></li>
+        <li><a href="#testimonials" class="block hover:text-pink-400 transition-colors duration-300 mobile-nav-link">Testimonials</a></li>
+        <li><a href="#contact" class="block hover:text-pink-400 transition-colors duration-300 mobile-nav-link">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="home" class="relative min-h-screen flex items-center justify-center px-6 py-20 overflow-hidden">
+    <div id="heroCanvas" class="hero-canvas"></div>
+    <div class="max-w-4xl text-center z-10 mt-16">
+      <div class="animate-reveal">
+        <span class="inline-block text-pink-400 font-medium mb-4 uppercase tracking-wider">Experience True Beauty</span>
+        <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold mb-6 leading-tight text-shadow">
+          <span class="bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-600">Salon Hashi</span><br> 
+          <span class="text-white">A Premium Beauty Experience</span>
+        </h1>
+        <p class="text-lg md:text-xl text-gray-300 leading-relaxed mb-10 max-w-2xl mx-auto">
+          Where artistry meets luxury. Our team of expert stylists and beauticians are dedicated to enhancing your natural beauty and creating a transformative experience.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+          <a href="#services" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition duration-300">
+            Explore Services
+          </a>
+          <a href="#contact" class="bg-transparent border-2 border-pink-400 text-pink-400 hover:bg-pink-400/10 font-semibold py-3 px-8 rounded-full transform hover:scale-105 transition duration-300">
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Scroll Indicator -->
+    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-center">
+      <span class="block text-sm text-gray-400 mb-2">Scroll to explore</span>
+      <div class="w-6 h-10 border-2 border-pink-400 rounded-full mx-auto relative">
+        <span class="absolute top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-pink-400 rounded-full animate-bounce"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="py-20 px-6 relative">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <span class="inline-block text-pink-400 font-medium mb-2 uppercase tracking-wider">Our Story</span>
+        <h2 class="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-600 mb-6">About Salon Hashi</h2>
+        <div class="w-20 h-1 bg-gradient-to-r from-pink-400 to-purple-600 mx-auto"></div>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div class="about-content">
+          <h3 class="text-2xl font-semibold text-white mb-6">A Decade of Excellence in Beauty</h3>
+          <p class="text-gray-300 mb-6 leading-relaxed">
+            Salon Hashi was established in 2013 with a vision to provide exceptional beauty services in a luxurious and welcoming environment. What began as a small salon has evolved into a premium beauty destination known for its artistry, expertise, and personalized approach.
+          </p>
+          <p class="text-gray-300 mb-6 leading-relaxed">
+            Our team consists of certified professionals who stay at the forefront of beauty trends and techniques. We pride ourselves on using high-quality, cruelty-free products that deliver stunning results while caring for your natural beauty.
+          </p>
+          <p class="text-gray-300 mb-8 leading-relaxed">
+            At Salon Hashi, we believe beauty is personal. That's why we take the time to understand your unique style, preferences, and concerns to create tailored experiences that enhance your natural beauty and boost your confidence.
+          </p>
+          <div class="grid grid-cols-2 gap-6 md:grid-cols-4">
+            <div class="text-center">
+              <div class="text-4xl font-bold text-pink-400 mb-2">10+</div>
+              <div class="text-gray-400 text-sm">Years of Experience</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-bold text-pink-400 mb-2">15+</div>
+              <div class="text-gray-400 text-sm">Expert Stylists</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-bold text-pink-400 mb-2">5k+</div>
+              <div class="text-gray-400 text-sm">Happy Clients</div>
+            </div>
+            <div class="text-center">
+              <div class="text-4xl font-bold text-pink-400 mb-2">25+</div>
+              <div class="text-gray-400 text-sm">Premium Services</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="about-visual bg-gradient-to-br from-pink-500/10 to-purple-600/10 rounded-2xl p-8 h-full flex items-center justify-center">
+          <div class="relative w-full aspect-square">
+            <div id="aboutVisual" class="w-full h-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="py-20 px-6 relative bg-gray-950">
+    <div id="serviceCanvas" class="service-canvas opacity-20"></div>
+    <div class="max-w-6xl mx-auto relative z-10">
+      <div class="text-center mb-16">
+        <span class="inline-block text-pink-400 font-medium mb-2 uppercase tracking-wider">What We Offer</span>
+        <h2 class="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-600 mb-6">Our Premium Services</h2>
+        <p class="text-gray-300 max-w-2xl mx-auto">Discover our range of luxury beauty services designed to pamper, rejuvenate, and transform. Each service is customized to your unique needs and preferences.</p>
+        <div class="w-20 h-1 bg-gradient-to-r from-pink-400 to-purple-600 mx-auto mt-6"></div>
+      </div>
+      
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <!-- Service Card 1 -->
+        <div class="service-card bg-gray-900 rounded-xl overflow-hidden shadow-xl transition-all duration-300 group">
+          <div class="h-28 bg-gradient-to-r from-pink-500/20 to-purple-600/20 flex items-center justify-center">
+            <span class="text-5xl">💇</span>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-pink-400 transition-colors">Hair Styling & Cutting</h3>
+            <p class="text-gray-400 mb-4">Expert cuts, styling, and treatments designed to enhance your natural beauty and reflect your personal style.</p>
+            <ul class="text-gray-400 space-y-2 mb-6">
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Precision Haircuts
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Blowouts & Styling
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Hair Treatments
+              </li>
+            </ul>
+            <a href="#" class="text-pink-400 font-medium hover:underline inline-flex items-center">
+              Learn More
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        
+        <!-- Service Card 2 -->
+        <div class="service-card bg-gray-900 rounded-xl overflow-hidden shadow-xl transition-all duration-300 group">
+          <div class="h-28 bg-gradient-to-r from-pink-500/20 to-purple-600/20 flex items-center justify-center">
+            <span class="text-5xl">💆‍♀️</span>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-pink-400 transition-colors">Facials & Skin Care</h3>
+            <p class="text-gray-400 mb-4">Revitalize your skin with our luxurious facial treatments tailored to address your specific skin concerns.</p>
+            <ul class="text-gray-400 space-y-2 mb-6">
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Deep Cleansing Facials
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Anti-Aging Treatments
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Hydration Therapy
+              </li>
+            </ul>
+            <a href="#" class="text-pink-400 font-medium hover:underline inline-flex items-center">
+              Learn More
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        
+        <!-- Service Card 3 -->
+        <div class="service-card bg-gray-900 rounded-xl overflow-hidden shadow-xl transition-all duration-300 group">
+          <div class="h-28 bg-gradient-to-r from-pink-500/20 to-purple-600/20 flex items-center justify-center">
+            <span class="text-5xl">💅</span>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-pink-400 transition-colors">Manicure & Pedicure</h3>
+            <p class="text-gray-400 mb-4">Indulge in our nail services designed to pamper your hands and feet while expressing your personal style.</p>
+            <ul class="text-gray-400 space-y-2 mb-6">
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Luxury Manicures
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Spa Pedicures
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Gel & Acrylic Options
+              </li>
+            </ul>
+            <a href="#" class="text-pink-400 font-medium hover:underline inline-flex items-center">
+              Learn More
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        
+        <!-- Service Card 4 -->
+        <div class="service-card bg-gray-900 rounded-xl overflow-hidden shadow-xl transition-all duration-300 group">
+          <div class="h-28 bg-gradient-to-r from-pink-500/20 to-purple-600/20 flex items-center justify-center">
+            <span class="text-5xl">👰</span>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-pink-400 transition-colors">Bridal Makeup Packages</h3>
+            <p class="text-gray-400 mb-4">Comprehensive bridal beauty services to ensure you look and feel your best on your special day.</p>
+            <ul class="text-gray-400 space-y-2 mb-6">
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Trial Sessions
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Day-of Styling
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Bridal Party Services
+              </li>
+            </ul>
+            <a href="#" class="text-pink-400 font-medium hover:underline inline-flex items-center">
+              Learn More
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        
+        <!-- Service Card 5 -->
+        <div class="service-card bg-gray-900 rounded-xl overflow-hidden shadow-xl transition-all duration-300 group">
+          <div class="h-28 bg-gradient-to-r from-pink-500/20 to-purple-600/20 flex items-center justify-center">
+            <span class="text-5xl">🎨</span>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-pink-400 transition-colors">Hair Coloring & Highlights</h3>
+            <p class="text-gray-400 mb-4">Transform your look with our expert color services, from subtle highlights to bold fashion colors.</p>
+            <ul class="text-gray-400 space-y-2 mb-6">
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Full Color Services
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Balayage & Ombré
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Color Correction
+              </li>
+            </ul>
+            <a href="#" class="text-pink-400 font-medium hover:underline inline-flex items-center">
+              Learn More
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        
+        <!-- Service Card 6 -->
+        <div class="service-card bg-gray-900 rounded-xl overflow-hidden shadow-xl transition-all duration-300 group">
+          <div class="h-28 bg-gradient-to-r from-pink-500/20 to-purple-600/20 flex items-center justify-center">
+            <span class="text-5xl">🧖‍♀️</span>
+          </div>
+          <div class="p-6">
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-pink-400 transition-colors">Spa & Relaxation Therapies</h3>
+            <p class="text-gray-400 mb-4">Rejuvenate your body and mind with our soothing spa treatments designed for ultimate relaxation.</p>
+            <ul class="text-gray-400 space-y-2 mb-6">
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Massage Therapies
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Body Treatments
+              </li>
+              <li class="flex items-center">
+                <span class="text-pink-400 mr-2">✓</span> Aromatherapy Sessions
+              </li>
+            </ul>
+            <a href="#" class="text-pink-400 font-medium hover:underline inline-flex items-center">
+              Learn More
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-12">
+        <a href="#contact" class="inline-block bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition duration-300">
+          Book Your Appointment
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section id="team" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <span class="inline-block text-pink-400 font-medium mb-2 uppercase tracking-wider">Meet Our Experts</span>
+        <h2 class="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-600 mb-6">Our Talented Team</h2>
+        <p class="text-gray-300 max-w-2xl mx-auto">Our team of skilled professionals is dedicated to helping you look and feel your best. With years of experience and a passion for beauty, they're ready to transform your look.</p>
+        <div class="w-20 h-1 bg-gradient-to-r from-pink-400 to-purple-600 mx-auto mt-6"></div>
+      </div>
+      
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <!-- Team Member 1 -->
+        <div class="bg-gray-900 rounded-xl overflow-hidden shadow-xl group">
+          <div class="aspect-[3/4] bg-gradient-to-br from-pink-500/20 to-purple-600/20 relative">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full bg-pink-400/30 flex items-center justify-center">
+                <span class="text-5xl">👩‍💼</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="text-xl font-semibold text-white mb-1">Amaya Lee</h3>
+            <p class="text-pink-400 mb-3">Founder & Creative Director</p>
+            <p class="text-gray-400 text-sm">With over 15 years of experience in the beauty industry, Amaya leads our team with passion and creativity.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+              <a href="#" class="text-gray-400 hover:text-pink-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4
+                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                </svg>
+              </a>
+              <a href="#" class="text-gray-400 hover:text-pink-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Team Member 2 -->
+        <div class="bg-gray-900 rounded-xl overflow-hidden shadow-xl group">
+          <div class="aspect-[3/4] bg-gradient-to-br from-pink-500/20 to-purple-600/20 relative">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full bg-pink-400/30 flex items-center justify-center">
+                <span class="text-5xl">👨‍💼</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="text-xl font-semibold text-white mb-1">Ravi Patel</h3>
+            <p class="text-pink-400 mb-3">Master Stylist</p>
+            <p class="text-gray-400 text-sm">An award-winning hair stylist with a keen eye for detail and passion for creating transformative looks.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+              <a href="#" class="text-gray-400 hover:text-pink-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                </svg>
+              </a>
+              <a href="#" class="text-gray-400 hover:text-pink-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Team Member 3 -->
+        <div class="bg-gray-900 rounded-xl overflow-hidden shadow-xl group">
+          <div class="aspect-[3/4] bg-gradient-to-br from-pink-500/20 to-purple-600/20 relative">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full bg-pink-400/30 flex items-center justify-center">
+                <span class="text-5xl">👩‍🎨</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="text-xl font-semibold text-white mb-1">Sofia Cruz</h3>
+            <p class="text-pink-400 mb-3">Makeup Artist</p>
+            <p class="text-gray-400 text-sm">A celebrity makeup artist with expertise in creating flawless looks for all occasions and skin tones.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+              <a href="#" class="text-gray-400 hover:text-pink-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                </svg>
+              </a>
+              <a href="#" class="text-gray-400 hover:text-pink-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Team Member 4 -->
+        <div class="bg-gray-900 rounded-xl overflow-hidden shadow-xl group">
+          <div class="aspect-[3/4] bg-gradient-to-br from-pink-500/20 to-purple-600/20 relative">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-32 h-32 rounded-full bg-pink-400/30 flex items-center justify-center">
+                <span class="text-5xl">👩‍⚕️</span>
+              </div>
+            </div>
+          </div>
+          <div class="p-6 text-center">
+            <h3 class="text-xl font-semibold text-white mb-1">Elena Kim</h3>
+            <p class="text-pink-400 mb-3">Skincare Specialist</p>
+            <p class="text-gray-400 text-sm">A certified esthetician specializing in advanced skincare treatments and personalized skin solutions.</p>
+            <div class="flex justify-center space-x-4 mt-4">
+              <a href="#" class="text-gray-400 hover:text-pink-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                </svg>
+              </a>
+              <a href="#" class="text-gray-400 hover:text-pink-400 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="text-center mt-12">
+        <a href="#" class="inline-block border-2 border-pink-400 text-pink-400 hover:bg-pink-400/10 font-semibold py-3 px-8 rounded-full transform hover:scale-105 transition duration-300">
+          Meet The Entire Team
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery Section -->
+  <section id="gallery" class="py-20 px-6 bg-gray-950">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <span class="inline-block text-pink-400 font-medium mb-2 uppercase tracking-wider">Our Work</span>
+        <h2 class="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-purple-600 mb-6">Gallery Showcase</h2>
+        <p class="text-gray-300 max-w-2xl mx-auto">Browse through our portfolio of transformations and artistic creations that highlight our expertise and attention to detail.</p>
+        <div class="w-20 h-1 bg-gradient-to-r from-pink-400 to-purple-600 mx-auto mt-6"></div>
+      </div>
+      
+      <!-- Gallery Filter -->
+      <div class="flex flex-wrap justify-center gap-4 mb-10">
+        <button class="px-5 py-2 rounded-full text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 transition">All</button>
+        <button class="px-5 py-2 rounded-full text-sm font-medium text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 transition">Hair</button>
+        <button class="px-5 py-2 rounded-full text-sm font-medium text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 transition">Makeup</button>
+        <button class="px-5 py-2 rounded-full text-sm font-medium text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 transition">Skincare</button>
+        <button class="px-5 py-2 rounded-full text-sm font-medium text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 transition">Nails</button>
+      </div>
+      
+      <!-- Gallery Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <!-- Gallery Item 1 -->
+        <div class="gallery-item aspect-square bg-gradient-to-br from-pink-500/30 to-purple-600/30 rounded-xl overflow-hidden cursor-pointer group relative">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-3xl">💇‍♀️</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+            <div class="text-center">
+              <h4 class="text-white font-medium">Modern Bob Cut</h4>
+              <p class="text-pink-300 text-sm">Hair Styling</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Gallery Item 2 -->
+        <div class="gallery-item aspect-square bg-gradient-to-br from-pink-500/30 to-purple-600/30 rounded-xl overflow-hidden cursor-pointer group relative">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-3xl">💅</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+            <div class="text-center">
+              <h4 class="text-white font-medium">Luxury Manicure</h4>
+              <p class="text-pink-300 text-sm">Nail Art</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Gallery Item 3 -->
+        <div class="gallery-item aspect-square bg-gradient-to-br from-pink-500/30 to-purple-600/30 rounded-xl overflow-hidden cursor-pointer group relative">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-3xl">👰</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+            <div class="text-center">
+              <h4 class="text-white font-medium">Bridal Transformation</h4>
+              <p class="text-pink-300 text-sm">Bridal Package</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Gallery Item 4 -->
+        <div class="gallery-item aspect-square bg-gradient-to-br from-pink-500/30 to-purple-600/30 rounded-xl overflow-hidden cursor-pointer group relative">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-3xl">💆‍♀️</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+            <div class="text-center">
+              <h4 class="text-white font-medium">Hydration Facial</h4>
+              <p class="text-pink-300 text-sm">Skincare</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Gallery Item 5 -->
+        <div class="gallery-item aspect-square bg-gradient-to-br from-pink-500/30 to-purple-600/30 rounded-xl overflow-hidden cursor-pointer group relative">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-3xl">🎨</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+            <div class="text-center">
+              <h4 class="text-white font-medium">Balayage Highlights</h4>
+              <p class="text-pink-300 text-sm">Hair Coloring</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Gallery Item 6 -->
+        <div class="gallery-item aspect-square bg-gradient-to-br from-pink-500/30 to-purple-600/30 rounded-xl overflow-hidden cursor-pointer group relative">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-3xl">👁️</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+            <div class="text-center">
+              <h4 class="text-white font-medium">Dramatic Eye Look</h4>
+              <p class="text-pink-300 text-sm">Makeup</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Gallery Item 7 -->
+        <div class="gallery-item aspect-square bg-gradient-to-br from-pink-500/30 to-purple-600/30 rounded-xl overflow-hidden cursor-pointer group relative">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-3xl">💇‍♂️</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6">
+            <div class="text-center">
+              <h4 class="text-white font-medium">Men's Styling</h4>
+              <p class="text-pink-300 text-sm">Haircut</p>
+            </div>
+          </div>
+        </div>
+        
+       
